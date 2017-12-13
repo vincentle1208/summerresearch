@@ -18,4 +18,4 @@ fi
 
 # run pub/sub sample app using certificates downloaded in package
 printf "\nRunning pub/sub sample application...\n"
-python aws-iot-device-sdk-python/samples/basicPubSub/basicPubSub.py -e a26l68lei3sfjz.iot.us-east-2.amazonaws.com -r root-CA.crt -c dummyTempSensor.cert.pem -k dummyTempSensor.private.key
+python mysensors.py -e a26l68lei3sfjz.iot.us-east-2.amazonaws.com -r root-CA.crt -c dummyTempSensor.cert.pem -k dummyTempSensor.private.key
