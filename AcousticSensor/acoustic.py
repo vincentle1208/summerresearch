@@ -35,7 +35,7 @@ MY_CHANNEL = 0 # channel to capture and display
 MY_PROBE_FILE = "" # default probe file if unspecified 
 MY_MODE = BL_MODE_FAST # preferred capture mode
 MY_RATE = 5000000 # default sample rate we'll use for capture.
-MY_SIZE = 10000 # number of samples we'll capture (simply a connectivity test)
+MY_SIZE = 100 # number of samples we'll capture (simply a connectivity test)
 TRUE = 1
 
 MODES = ("FAST","DUAL","MIXED","LOGIC","STREAM")
