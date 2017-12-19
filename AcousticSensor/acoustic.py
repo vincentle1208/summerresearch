@@ -14,7 +14,8 @@
  * permissions and limitations under the License.
  */
  '''
-
+import plotly.plotly as py
+from plotly.graph_objs import *
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 from bitlib import *
 
@@ -29,18 +30,21 @@ import sys
 import signal
 import RPi.GPIO as GPIO
 
+
 # Folder directory definitions
 MY_DEVICE = 0 # one open device only
 MY_CHANNEL = 0 # channel to capture and display
 MY_PROBE_FILE = "" # default probe file if unspecified 
 MY_MODE = BL_MODE_FAST # preferred capture mode
-MY_RATE = 5000000 # default sample rate we'll use for capture.
-MY_SIZE = 100 # number of samples we'll capture (simply a connectivity test)
+MY_RATE = 1000000 # default sample rate we'll use for capture.
+MY_SIZE = 10000 # number of samples we'll capture (simply a connectivity test)
 TRUE = 1
 
 MODES = ("FAST","DUAL","MIXED","LOGIC","STREAM")
 SOURCES = ("POD","BNC","X10","X20","X50","ALT","GND")
 
+
+layout = Layout(title='Acoustic sensor')
 # LED PINs
 LED = 2
 
@@ -112,7 +116,7 @@ else:
 # AWSIoTMQTTClient connection configuration
 myAWSIoTMQTTClient.configureAutoReconnectBackoffTime(1, 32, 20)
 myAWSIoTMQTTClient.configureOfflinePublishQueueing(-1)  # Infinite offline Publish queueing
-myAWSIoTMQTTClient.configureDrainingFrequency(2)  # Draining: 2 Hz
+myAWSIoTMQTTClient.configureDrainingFrequency(10)  # Draining: 2 Hz
 myAWSIoTMQTTClient.configureConnectDisconnectTimeout(300)  # 5 mins
 myAWSIoTMQTTClient.configureMQTTOperationTimeout(120)  # 2 mins
 
@@ -121,6 +125,10 @@ myAWSIoTMQTTClient.connect()
 myAWSIoTMQTTClient.subscribe(topic, 1, customCallback)
 time.sleep(2)
 
+#TIME_STAMP = np.rand(100000)
+#for i in range(25000):
+ #   TIME_STAMP[i] = 1/100000 * i
+    
 # Publish to the same topic in a loop forever
 
 def main():
@@ -186,7 +194,9 @@ def main():
             BL_Select(BL_SELECT_SOURCE,BL_SOURCE_POD); # use the POD input */
             BL_Range(BL_Count(BL_COUNT_RANGE)); # maximum range
             BL_Offset(BL_ZERO); # optional, default 0
-            BL_Enable(TRUE); # at least one channel must be initialised 
+            BL_Enable(TRUE); # at least one channel must be initialised
+
+        
             while True:
                 #
                 # Perform an (untriggered) trace (this is the actual data capture).
@@ -197,10 +207,12 @@ def main():
                 #
                 DATA = BL_Acquire()
                 ## Publish on MQTT Client
-                messageObject = (",".join(["%f" % DATA[n] for n in range(len(DATA))]))
-                myAWSIoTMQTTClient.publish("/AcousticSensor", messageObject, 1)
+                messageObject = (",".join(["%5.8f" % DATA[n] for n in range(len(DATA))]))
+                #myAWSIoTMQTTClient.publish("/AcousticSensor", messageObject, 1)
                 #print (" Data(%d): " % MY_SIZE + ", ".join(["%f" % DATA[n] for n in range(len(DATA))]))
-                #time.sleep(1)            
+                print(messageObject)
+                time.sleep(0)
+                
             # Close the library to release resources (we're done).
             #
             BL_Close()

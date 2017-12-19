@@ -125,9 +125,9 @@ if not args.useWebsocket and (not args.certificatePath or not args.privateKeyPat
 logger = logging.getLogger("AWSIoTPythonSDK.core")
 logger.setLevel(logging.DEBUG)
 streamHandler = logging.StreamHandler()
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-streamHandler.setFormatter(formatter)
-logger.addHandler(streamHandler)
+#formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+#streamHandler.setFormatter(formatter)
+#logger.addHandler(streamHandler)
 
 # Init AWSIoTMQTTClient
 myAWSIoTMQTTClient = None
@@ -168,6 +168,8 @@ def main():
             messageObject = ("{0} : {1},{2} : {3},{4} : {5}".
                              format(SENSORS[0], temp[0], SENSORS[1], temp[1],
                                     SENSORS[2], temp[2]))
+            print ("*" * 16)
+
             myAWSIoTMQTTClient.publish("/TemperatureSensors", messageObject, 1)
             time.sleep(int(sensorSamplingRate))
             

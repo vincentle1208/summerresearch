@@ -9,16 +9,14 @@ MY_DEVICE = 0 # one open device only
 MY_CHANNEL = 0 # channel to capture and display
 MY_PROBE_FILE = "" # default probe file if unspecified 
 MY_MODE = BL_MODE_FAST # preferred capture mode
-MY_RATE = 1000000 # default sample rate we'll use for capture.
-MY_SIZE = 100 # number of samples we'll capture (simply a connectivity test)
+MY_RATE = 5000000 # default sample rate we'll use for capture.
+MY_SIZE = 1000 # number of samples we'll capture (simply a connectivity test)
 TRUE = 1
 
 MODES = ("FAST","DUAL","MIXED","LOGIC","STREAM")
 SOURCES = ("POD","BNC","X10","X20","X50","ALT","GND")
 
 def main(argv=None):
-    #while True :
-    #
     # Open the first device found (only)
     #
     print ("Starting: Attempting to open one device...")
