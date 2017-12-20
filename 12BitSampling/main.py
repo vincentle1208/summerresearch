@@ -3,6 +3,7 @@ import time
 import threading
 import struct
 from collections import deque
+import sys
 
 from datetime import datetime
 
@@ -13,7 +14,7 @@ channels = 1 # 1 is ch A alone, 2 is both
 
 macro = True # 12 bit or not
 
-fileName = "dump"
+fileName = "data"
 
 """ Internal """
 running = True
@@ -30,11 +31,6 @@ if channels == 1:
         tickRate = sampleRate
     else:
         tickRate = sampleRate * 2
-else:
-    if not macro:
-        tickRate = sampleRate * 4
-    else:
-        tickRate = sampleRate * 3
 
 """ Serial helpers """
 def issue(message):
@@ -74,11 +70,6 @@ def getToRange(fromRange, toRange):
     return lambda v : round((10**6) * (tr[0] + slope * float(v - fr[0])), 1)
     
 """ Decoding """
-def decode1Ch(data):
-    unpackArg = "<" + str(len(data)) + "B"
-    unpacked = struct.unpack(unpackArg, data)
-    return list(unpacked)
-
 def decode1ChMacro(data):
     unpackArg = "<" + str(int(len(data) / 2)) + "h"
     unpacked = list(struct.unpack(unpackArg, data))
@@ -88,20 +79,6 @@ def decode1ChMacro(data):
         i = a + b
     return unpacked
 
-def decode2Ch(data):
-    # token, count, cha, chb
-    unpackArg = "<" + str(len(data)) + "B"
-    up = struct.unpack(unpackArg, data)
-    return [v for p in zip(up[2::4], up[3::4]) for v in p]
-
-def decode2ChMacro(data):
-    # cha + token-nibble, cha, chb + token-nibble, chb
-    unpackArg = "<" + str(int(len(data) / 2)) + "h"
-    unpacked = struct.unpack(unpackArg, data)
-    rmToken = lambda x : x & ~0x000f
-    formatted = map(rmToken, unpacked)
-    return list(formatted)
-
 def setupBS():
     """ Standard setup procedure. """
     if channels == 1:
@@ -110,12 +87,6 @@ def setupBS():
             modeString = "04"
         else:
             modeString = "02"
-    else:
-        chString = "03"
-        if macro:
-            modeString = "03"
-        else:
-            modeString = "01"
         
     issueWait("!")
     issueWait(
@@ -140,14 +111,17 @@ def readLoop():
     startStream()
     while running:
         data = bytearray()
-        toGet = 44000                   # Take 44000 samples in 1 second
+        toGet = 20000                   # Take 44000 samples in 1 second
         data = ser.read(toGet)
         dataQueue.append(data)
         
 def writeToFile(file, data, count):
     # Write to file
     dataStr = ','.join(map(str, data))
-    toWrite = dataStr + ','
+    #for i in range(len(data)/100):
+     #   print data[i]
+    # toWrite = dataStr + ',' + str(datetime.now()) + '\n'
+    toWrite = str(datetime.now()) + '\n'
     file.write(toWrite)
     
 def processAndWriteLoop():
@@ -157,21 +131,15 @@ def processAndWriteLoop():
             decodeFn = decode1Ch
         else:
             decodeFn = decode1ChMacro
-    else:
-        if not macro:
-            decodeFn = decode2Ch
-        else:
-            decodeFn = decode2ChMacro
 
     fromRange = None
     if macro:
         fromRange = (-32768, 32767)
-        #fromRange = (-524288, 524287)
     else:
         fromRange = (0, 255)
 
     toRangeLambda = getToRange(fromRange, (-5, 5))
-    dumpFile = open(filePath, "w")
+    dumpFile = open(filePath, 'w')
 
     counter = 0
     while True:
@@ -184,26 +152,32 @@ def processAndWriteLoop():
             # Voltify
             voltData = list(map(toRangeLambda, levelData))
             # Write
-            if (counter == 0):
-                print("start: " + str(datetime.now()))
-            if (counter == 1) :
-                print("Finish 10 SAMPLES" + str(datetime.now()))
-            if (counter < 1) :
+            #if (counter == 0):
+                #print("start: " + str(datetime.now()))
+            #if (counter == 1) :
+                #print("Finish 10 SAMPLES" + str(datetime.now()))
+            if (counter < 10) :
                 writeToFile(dumpFile, voltData, counter)
-            if (counter == 1) :
-                print("Finish 10 SAMPLES" + str(datetime.now()))
+            #if (counter == 1) :
+                #print("Finish 10 SAMPLES" + str(datetime.now()))
+                #print("start: " + str(datetime.now()))
             counter = counter + 1
+            #time.sleep(5)
     
 def main():
-    # Stop BS and clear out serial buffer
-    issueWait(".")
-    readAll()
-    # Open read stream thread
-    readThread = threading.Thread(target = readLoop)
-    readThread.start()
-    # Start writing loop in main thread
-    processAndWriteLoop()
+    try :
+        # Stop BS and clear out serial buffer
+        issueWait(".")
+        readAll()
+        # Open read stream thread
+        readThread = threading.Thread(target = readLoop)
+        readThread.start()
+        # Start writing loop in main thread
+        processAndWriteLoop()
     
-""" Go """
-
-main()
+    except (KeyboardInterrupt, Exception) as e:
+        print (e)
+        print ("Program terminated successfully")
+        
+if __name__ == '__main__':
+    sys.exit(main())
