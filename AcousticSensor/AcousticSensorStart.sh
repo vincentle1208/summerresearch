@@ -17,4 +17,4 @@ if [ ! -d ./aws-iot-device-sdk-python ]; then
 fi
 
 # run pub/sub sample app using certificates downloaded in package
-python acoustic.py -e a26l68lei3sfjz.iot.us-east-2.amazonaws.com -r root-CA.crt -c 0db9811d7e-certificate.pem.crt -k 0db9811d7e-private.pem.key
+python myAcousticSensor.py -e a26l68lei3sfjz.iot.us-east-2.amazonaws.com -r root-CA.crt -c 0db9811d7e-certificate.pem.crt -k 0db9811d7e-private.pem.key

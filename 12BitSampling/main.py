@@ -9,11 +9,8 @@ from datetime import datetime
 
 """ User Parameters """
 sampleRate = 100000 # hz per channel
-
 channels = 1 # 1 is ch A alone, 2 is both
-
 macro = True # 12 bit or not
-
 fileName = "data"
 
 """ Internal """

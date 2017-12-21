@@ -171,7 +171,7 @@ def main():
             print ("*" * 16)
 
             myAWSIoTMQTTClient.publish("/TemperatureSensors", messageObject, 1)
-            time.sleep(int(sensorSamplingRate))
+            time.sleep(int(sensorSamplingRate)) 
             
     except (KeyboardInterrupt, Exception) as e:
         print(e)
