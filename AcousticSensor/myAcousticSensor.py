@@ -13,7 +13,7 @@ from datetime import datetime
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 
 """ User Parameters """
-sampleRate = 100000 # hz per channel
+sampleRate = 20000 # hz per channel
 channels = 1 # 1 is ch A alone, 2 is both
 macro = True # 12 bit or not
 fileName = "data"
@@ -90,14 +90,14 @@ else:
 # AWSIoTMQTTClient connection configuration
 myAWSIoTMQTTClient.configureAutoReconnectBackoffTime(1, 32, 20)
 myAWSIoTMQTTClient.configureOfflinePublishQueueing(-1)  # Infinite offline Publish queueing
-myAWSIoTMQTTClient.configureDrainingFrequency(10)  # Draining: 2 Hz
+myAWSIoTMQTTClient.configureDrainingFrequency(100)  # Draining: 2 Hz
 myAWSIoTMQTTClient.configureConnectDisconnectTimeout(300)  # 5 mins
 myAWSIoTMQTTClient.configureMQTTOperationTimeout(120)  # 2 mins
 
 # Connect and subscribe to AWS IoT
 myAWSIoTMQTTClient.connect()
 myAWSIoTMQTTClient.subscribe(topic, 1, customCallback)
-time.sleep(2)
+time.sleep(0.1)
 
 ##################################################
 
@@ -189,13 +189,14 @@ def readLoop():
         toGet = 20000                   # Take 44000 samples in 1 second
         data = ser.read(toGet)
         dataQueue.append(data)
+        time.sleep(1)
         
 def writeToFile(file, data, count):
     # Write to file
     dataStr = ','.join(map(str, data))
     #for i in range(len(data)/100):
      #   print data[i]
-    strData = dataStr + ',' + str(datetime.now()) + '\n'
+    strData = dataStr + ',' + '\n'
     toWrite = str(datetime.now()) + '\n'
     file.write(toWrite)
     return strData
@@ -226,15 +227,13 @@ def main():
                 # Voltify
                 voltData = list(map(toRangeLambda, levelData))
                 # Write
-                if (counter < 10) :
-                    messageObject = writeToFile(dumpFile, voltData, counter)
-                    myAWSIoTMQTTClient.publish("/AcousticSensor", messageObject, 1)
-                counter = counter + 1
-                time.sleep(1)
+                messageObject = writeToFile(dumpFile, voltData, counter)
+                myAWSIoTMQTTClient.publish("/AcousticSensor", messageObject, 1)
     
     except (KeyboardInterrupt, Exception) as e:
+        running = False
         print (e)
         print ("Program terminated successfully")
         
 if __name__ == '__main__':
-    sys.exit(main())
+    main()
